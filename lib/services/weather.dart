@@ -1,7 +1,10 @@
 import 'package:flutter_apps/services/location.dart';
 import 'package:flutter_apps/services/networking.dart';
 
-const apiKey = '9e3329e92f9290f3e0fc059429384a12';
+// login on weather site to get key
+// https://openweathermap.org/
+
+const apiKey = '';
 const openWeatherMapIRL = 'http://api.openweathermap.org/data/2.5/weather';
 
 class WeatherModel {
