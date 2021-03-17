@@ -41,7 +41,7 @@ class LineChartWidget extends StatelessWidget {
         minX: 0,
         maxX: 11,
         minY: 0,
-        maxY: 6,
+        maxY: 11,
         titlesData: LineTitles.getTitleData(),
         gridData: FlGridData(
           show: true,
@@ -97,7 +97,7 @@ class LineChartWidget extends StatelessWidget {
               FlSpot(2.6, 2),
               FlSpot(4.9, 5),
               FlSpot(6.8, 2.5),
-              FlSpot(8, 4),
+              FlSpot(8, 9),
               FlSpot(9, 3),
               FlSpot(11, 4),
             ],
@@ -134,7 +134,7 @@ class LineTitles {
         ),
         leftTitles: SideTitles(
           showTitles: true,
-          reservedSize: 30,
+          reservedSize: 40,
           getTextStyles: (value) => TextStyle(
             color: Colors.redAccent,
             fontWeight: FontWeight.bold,
@@ -144,14 +144,30 @@ class LineTitles {
             switch (value.toInt()) {
               case 1:
                 return '10k';
+              case 2:
+                return '20k';
               case 3:
                 return '30k';
+              case 4:
+                return '40k';
               case 5:
                 return '50k';
+              case 6:
+                return '60k';
+              case 7:
+                return '70k';
+              case 8:
+                return '80k';
+              case 9:
+                return '90k';
+              case 10:
+                return '100k';
+              case 11:
+                return '110k';
             }
             return '';
           },
-          margin: 8,
+          margin: 24,
         ),
       );
 }
