@@ -1,5 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import 'package:image/image.dart' as image;
 
 void main() async {
   runApp(MyApp());
@@ -27,12 +38,41 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LineChartWidget extends StatelessWidget {
+class LineChartWidget extends StatefulWidget {
+  @override
+  _LineChartWidgetState createState() => _LineChartWidgetState();
+}
+
+class _LineChartWidgetState extends State<LineChartWidget> {
+  ui.Image imageLoaded;
+
   final List<Color> gradientColors = [
     const Color(0xff23b6e6),
     const Color(0xff02d39a),
     const Color(0xffFF0000),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // loadImage('assets/macka.jpg');
+    getUiImage('assets/macka.jpg', 30, 60);
+  }
+
+  Future getUiImage(String imageAssetPath, int height, int width) async {
+    final ByteData assetImageByteData = await rootBundle.load(imageAssetPath);
+    image.Image baseSizeImage =
+        image.decodeImage(assetImageByteData.buffer.asUint8List());
+    image.Image resizeImage =
+        image.copyResize(baseSizeImage, height: height, width: width);
+    ui.Codec codec =
+        await ui.instantiateImageCodec(image.encodePng(resizeImage));
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    // return frameInfo.image;
+
+    setState(() => this.imageLoaded = frameInfo.image);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,30 +116,25 @@ class LineChartWidget extends StatelessWidget {
               colors: gradientColors.map((e) => e.withOpacity(0.5)).toList(),
             ),
             dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 8,
-                color: lerpGradient(
-                    barData.colors, barData.colorStops, percent / 100),
-                strokeWidth: 2,
-                strokeColor: Colors.black,
-              ),
-              // getDotPainter: (spot, percent, barData, index) => FlDotPainter(),
-              //     FlDotCirclePainter(
-              //   radius: 12,
-              //   color: Colors.deepOrange.withOpacity(0.5),
-              // ),
-            ),
+                show: true,
+                getDotPainter: (spot, percent, barData, index) {
+                  return FlDotCirclePainter2(
+                    image: imageLoaded,
+                    strokeWidth: 4,
+                    color: Colors.white,
+                    radius: 35,
+                    strokeColor: Colors.yellow,
+                  );
+                }),
             isStrokeCapRound: true,
             spots: [
               FlSpot(0, 3),
               FlSpot(2.6, 2),
               FlSpot(4.9, 5),
-              FlSpot(6.8, 2.5),
-              FlSpot(8, 9),
-              FlSpot(9, 3),
-              FlSpot(11, 4),
+              FlSpot(6.8, 10),
+              FlSpot(8, 5),
+              FlSpot(9, 2),
+              FlSpot(11, 3),
             ],
           ),
         ],
@@ -194,4 +229,90 @@ Color lerpGradient(List<Color> colors, List<double> stops, double t) {
     }
   }
   return colors.last;
+}
+
+class FlDotCirclePainter2 extends FlDotPainter {
+  /// The fill color to use for the circle
+  Color color;
+
+  /// Customizes the radius of the circle
+  double radius;
+
+  /// The stroke color to use for the circle
+  Color strokeColor;
+
+  /// The stroke width to use for the circle
+  double strokeWidth;
+
+  /// The color of the circle is determined determined by [color],
+  /// [radius] determines the radius of the circle.
+  /// You can have a stroke line around the circle,
+  /// by setting the thickness with [strokeWidth],
+  /// and you can change the color of of the stroke with [strokeColor].
+  FlDotCirclePainter2({
+    ui.Image image,
+    Color color,
+    double radius,
+    Color strokeColor,
+    double strokeWidth,
+  })  : this.image = image,
+        color = color ?? Colors.green,
+        radius = radius ?? 4.0,
+        strokeColor = strokeColor ?? Colors.green.darken(),
+        strokeWidth = strokeWidth ?? 1.0;
+
+  // FlDotCirclePainter2();
+
+  ui.Image image;
+
+  /// Implementation of the parent class to draw the circle
+  @override
+  void draw(Canvas canvas, FlSpot spot, Offset offsetInCanvas) {
+    canvas.drawCircle(
+        offsetInCanvas,
+        radius,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill);
+
+    canvas.drawImage(
+        image,
+        Offset(offsetInCanvas.dx - 30, offsetInCanvas.dy - 15),
+        Paint()..color = Colors.white.withAlpha(255));
+
+    if (strokeWidth != null) {
+      // canvas.drawCircle(
+      //     offsetInCanvas,
+      //     radius + (strokeWidth / 2),
+      //     Paint()
+      //       ..color = strokeColor ?? color
+      //       ..strokeWidth = strokeWidth
+      //       ..style = PaintingStyle.stroke);
+    }
+  }
+
+  /// Implementation of the parent class to get the size of the circle
+  @override
+  Size getSize(FlSpot spot) {
+    return Size(radius, radius);
+  }
+
+  /// Used for equality check, see [EquatableMixin].
+  @override
+  List<Object> get props => [
+        color,
+        radius,
+        strokeColor,
+        strokeWidth,
+      ];
+}
+
+extension ColorExtension on Color {
+  /// Convert the color to a darken color based on the [percent]
+  Color darken([int percent = 40]) {
+    assert(1 <= percent && percent <= 100);
+    final value = 1 - percent / 100;
+    return Color.fromARGB(alpha, (red * value).round(), (green * value).round(),
+        (blue * value).round());
+  }
 }
