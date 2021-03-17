@@ -277,7 +277,10 @@ class FlDotCirclePainter2 extends FlDotPainter {
 
     canvas.drawImage(
         image,
-        Offset(offsetInCanvas.dx - 30, offsetInCanvas.dy - 15),
+        Offset(
+          offsetInCanvas.dx - image.width / 2,
+          offsetInCanvas.dy - image.height / 2,
+        ),
         Paint()..color = Colors.white.withAlpha(255));
 
     if (strokeWidth != null) {
