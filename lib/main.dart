@@ -75,7 +75,23 @@ class LineChartWidget extends StatelessWidget {
               show: true,
               colors: gradientColors.map((e) => e.withOpacity(0.5)).toList(),
             ),
-            // dotData: FlDotData(show: false),
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
+                radius: 8,
+                color: lerpGradient(
+                    barData.colors, barData.colorStops, percent / 100),
+                strokeWidth: 2,
+                strokeColor: Colors.black,
+              ),
+              // getDotPainter: (spot, percent, barData, index) => FlDotPainter(),
+              //     FlDotCirclePainter(
+              //   radius: 12,
+              //   color: Colors.deepOrange.withOpacity(0.5),
+              // ),
+            ),
+            isStrokeCapRound: true,
             spots: [
               FlSpot(0, 3),
               FlSpot(2.6, 2),
@@ -138,4 +154,28 @@ class LineTitles {
           margin: 8,
         ),
       );
+}
+
+Color lerpGradient(List<Color> colors, List<double> stops, double t) {
+  if (stops == null || stops.length != colors.length) {
+    stops = [];
+
+    /// provided gradientColorStops is invalid and we calculate it here
+    colors.asMap().forEach((index, color) {
+      final percent = 1.0 / colors.length;
+      stops.add(percent * index);
+    });
+  }
+
+  for (var s = 0; s < stops.length - 1; s++) {
+    final leftStop = stops[s], rightStop = stops[s + 1];
+    final leftColor = colors[s], rightColor = colors[s + 1];
+    if (t <= leftStop) {
+      return leftColor;
+    } else if (t < rightStop) {
+      final sectionT = (t - leftStop) / (rightStop - leftStop);
+      return Color.lerp(leftColor, rightColor, sectionT);
+    }
+  }
+  return colors.last;
 }
